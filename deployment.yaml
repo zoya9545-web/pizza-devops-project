@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pizza-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pizza
+  template:
+    metadata:
+      labels:
+        app: pizza
+    spec:
+      containers:
+      - name: pizza-container
+        image: zoya9545/pizza-website:latest
+        ports:
+        - containerPort: 80
+
