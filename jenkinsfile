@@ -1,0 +1,51 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE = 'zoya9545/pizza-website:latest'
+        DOCKERHUB_CREDENTIALS = 'dockerhub-creds'
+        KUBE_CONFIG = '/root/.kube/config'
+    }
+
+    stages {
+        stage('Clone Repo') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/zoya9545-web/pizza-devops-project.git',
+                    credentialsId: 'github-creds'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t $DOCKER_IMAGE .'
+            }
+        }
+
+        stage('Push to DockerHub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh '''
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                        docker push $DOCKER_IMAGE
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy to AKS') {
+            steps {
+                sh "kubectl set image deployment/pizza-deployment pizza=$DOCKER_IMAGE --record"
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Deployment succeeded!'
+        }
+        failure {
+            echo '❌ Deployment failed!'
+        }
+    }
+}
