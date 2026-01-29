@@ -17,3 +17,7 @@ spec:
         image: zoya9545/pizza-website:latest
         ports:
         - containerPort: 80
+containers:
+  - name: pizza
+    image: zoya9545/pizza-website:latest
+    imagePullPolicy: Always
